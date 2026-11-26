@@ -24,6 +24,10 @@ jobs:
           tap="$(brew --repository)/Library/Taps/helderperez-dev/homebrew-grumo"
           mkdir -p "$(dirname "$tap")"
           cp -a "$GITHUB_WORKSPACE" "$tap"
+          # Hosted macOS runners may have conflicting python.org symlinks.
+          if [[ "$(uname -s)" == Darwin ]]; then
+            brew install python@3.12 || { brew list --versions python@3.12 && brew link --overwrite python@3.12; }
+          fi
           brew install --build-from-source helderperez-dev/grumo/grumo
           brew test helderperez-dev/grumo/grumo
           grumo version
