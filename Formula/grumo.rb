@@ -1,8 +1,8 @@
 class Grumo < Formula
   desc "Programmable runtime for adaptive applications and operational systems"
   homepage "https://github.com/helderperez-dev/grumo"
-  url "https://files.pythonhosted.org/packages/source/g/grumo/grumo-2.0.0.tar.gz"
-  sha256 "3d278621df1f1620747dfae728f6c3942b748ad4de1e78b164c60ea56f4eab9b"
+  url "https://files.pythonhosted.org/packages/source/g/grumo/grumo-2.0.1.tar.gz"
+  sha256 "5ab6142aaff7b597c51617418446acdd24c05774952f41423fad470bbf7e31ad"
   license "MIT"
 
   depends_on "uv"
@@ -63,6 +63,7 @@ class Grumo < Formula
         app = App()
         with TestClient(app) as client:
             assert client.get('/').status_code == 200
+            assert client.get('/readyz').status_code == 200
             assert client.get('/about').status_code == 200
             assert client.get('/users/42').status_code == 200
         assert Path('.grumo/application.grumo').exists()
