@@ -16,6 +16,17 @@ jobs:
       HOMEBREW_NO_AUTO_UPDATE: "1"
     steps:
       - uses: actions/checkout@v4
+      - name: Remove conflicting preinstalled Python symlinks
+        if: runner.arch == 'X64'
+        run: |
+          for name in 2to3-3.12 idle3.12 pip3.12 pydoc3.12 python3.12 python3.12-config; do
+            path="/usr/local/bin/$name"
+            if [ -L "$path" ]; then
+              case "$(readlink "$path")" in
+                /Library/Frameworks/Python.framework/Versions/3.12/bin/*) sudo rm "$path" ;;
+              esac
+            fi
+          done
       - name: Install local tap
         run: |
           brew tap helderperez-dev/grumo "$GITHUB_WORKSPACE"
