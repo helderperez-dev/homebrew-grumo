@@ -1,0 +1,41 @@
+name: Homebrew installation
+on:
+  pull_request:
+  push:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  install:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-15, macos-15-intel]
+    runs-on: ${{ matrix.os }}
+    env:
+      HOMEBREW_NO_AUTO_UPDATE: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - name: Prepare Homebrew Python on Intel runner
+        if: matrix.os == 'macos-15-intel'
+        run: |
+          for name in 2to3-3.12 idle3.12 pip3.12 pydoc3.12 python3.12 python3.12-config; do
+            path="/usr/local/bin/$name"
+            if [ -L "$path" ]; then
+              case "$(readlink "$path")" in
+                *Python.framework/Versions/3.12/bin/*) sudo rm "$path" ;;
+              esac
+            fi
+          done
+          brew install python@3.12
+      - name: Install local tap
+        run: |
+          brew tap helderperez-dev/grumo "$GITHUB_WORKSPACE"
+          cp Formula/grumo.rb "$(brew --repository helderperez-dev/grumo)/Formula/grumo.rb"
+          brew install --build-from-source helderperez-dev/grumo/grumo
+      - name: Verify CLI and generated application
+        run: |
+          grumo --help
+          brew test helderperez-dev/grumo/grumo
+      - name: Uninstall
+        run: brew uninstall helderperez-dev/grumo/grumo
