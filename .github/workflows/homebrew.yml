@@ -1,0 +1,35 @@
+name: Grumo Homebrew installation
+on:
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  install:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-15, macos-15-intel]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    env:
+      HOMEBREW_NO_AUTO_UPDATE: "1"
+      HOMEBREW_NO_INSTALL_CLEANUP: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install candidate tap
+        run: |
+          brew tap helderperez-dev/grumo "$GITHUB_WORKSPACE"
+          brew install --build-from-source helderperez-dev/grumo/grumo
+      - name: Validate installed CLI and formula
+        run: |
+          grumo version
+          brew test helderperez-dev/grumo/grumo
+      - name: Reinstall and test
+        run: |
+          brew reinstall --build-from-source helderperez-dev/grumo/grumo
+          brew test helderperez-dev/grumo/grumo
+      - name: Uninstall
+        run: |
+          brew uninstall helderperez-dev/grumo/grumo
+          if brew list --formula | grep -qx grumo; then exit 1; fi
